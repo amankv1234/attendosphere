@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AttendoSphere - Attendance Monitoring System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .hidden {
+            display: none;
+        }
+        .btn {
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .table th, .table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .table th {
+            background: #1e40af;
+            color: white;
+            font-weight: 600;
+        }
+        .input-field {
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            padding: 12px;
+            transition: border-color 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: #3b82f6;
+            outline: none;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #10b981;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.5s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        .scenario-info {
+            background: linear-gradient(45deg, #f39c12, #e74c3c);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="notification" class="notification hidden">
+        <i class="fas fa-bell mr-2"></i> Demo notification: Attendance updated!
+    </div>
+
+    <div id="scenario-info" class="scenario-info hidden">
+        🚀 SMART ATTENDANCE: <span id="scenario-text"></span> - All data is real and authentic
+    </div>
+
+    <header class="bg-blue-800 text-white p-6 shadow-lg">
+        <div class="container mx-auto">
+            <div class="flex justify-between items-center flex-wrap">
+                <div class="flex items-center space-x-4 mb-2 md:mb-0">
+                    <img src="TeamLogo.png" alt="Biometric attendance system with Aadhar card and facial recognition features" class="w-20 h-20 border-2 rounded-full border-white">
+                    <div class="text-center">
+                        <h1 class="text-3xl font-bold">SmartAttendanceSystem</h1>
+                        <small class="text-blue-100">Daily Data, Aadhar Face Registration, Entry/Exit Attendance By Bluetooth And Facial Recognition</small>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="user-info" class="hidden flex items-center space-x-3">
+                        <span class="text-lg">Logged in as: <span id="username-display" class="font-semibold"></span></span>
+                        <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded-full btn hover:bg-red-600">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 text-center">
+                <p class="text-blue-100">🏆 Smart India Hackathon Prototype - Bluetooth , Facial/Biometric Attendance with Aadhar API</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Login Section -->
+        <div id="login-section" class="card fade-in">
+            <div class="text-center mb-8">
+                <i class="fas fa-rocket text-6xl text-blue-600 mb-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800"> Login to SmartAttend</h2>
+                <p class="text-gray-600 mt-2">Choose a user type to explore different scenarios</p>
+            </div>
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label class="block text-lg font-medium text-gray-700 mb-2">🎭 Select Your Role</label>
+                    <select id="role" class="input-field w-full">
+                        <option value="student">👨‍🎓 Student</option>
+                        <option value="teacher">👨‍🏫 Teacher</option>
+                        <option value="admin">🔧 Admin</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-lg font-medium text-gray-700 mb-2">Username</label>
+                    <input type="text" id="username" class="input-field w-full" placeholder="Enter demo username" required>
+                </div>
+                <div>
+                    <label class="block text-lg font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="password" class="input-field w-full" placeholder="Enter demo password" required>
+                </div>
+                <div id="error-message" class="hidden text-red-600 font-semibold text-center bg-red-50 p-3 rounded-lg"></div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-bold btn hover:bg-blue-700 flex items-center justify-center">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Start 
+                </button>
+            </form>
+            <div class="mt-6 text-center text-gray-600">
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <p class="font-semibold text-yellow-800">📋 Credentials To Check Prototype:</p>
+                    <p><strong>Student:</strong> student1/demo1 | student2/demo2</p>
+                    <p><strong>Teacher:</strong> teacher1/pass123</p>
+                    <p><strong>Admin:</strong> admin/admin123</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Demo Section -->
+        <div id="student-section" class="hidden card fade-in">
+            <div class="text-center mb-8">
+                <i class="fas fa-user-chart text-6xl text-green-600 mb-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800">👨‍🎓 Student : Attendance Overview</h2>
+            </div>
+            <div class="mb-6">
+                <p class="text-lg text-gray-700 leading-relaxed">Track your daily attendance and mark your attendance with biometric verification:</p>
+            </div>
+            <div class="mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">📅 Daily Background Data</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-gradient-to-r from-blue-100 to-blue-200 p-6 rounded-xl shadow-md text-center">
+                        <i class="fas fa-calendar-day text-3xl text-blue-600 mb-3"></i>
+                        <h4 class="font-semibold text-lg">Daily Rate</h4>
+                        <p class="text-3xl font-bold text-blue-800" id="daily-rate">85%</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="daily-progress-fill" style="width: 85%;"></div>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-green-100 to-green-200 p-6 rounded-xl shadow-md text-center">
+                        <i class="fas fa-week text-3xl text-green-600 mb-3"></i>
+                        <h4 class="font-semibold text-lg">Weekly Rate</h4>
+                        <p class="text-3xl font-bold text-green-800" id="weekly-rate">78%</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="weekly-progress-fill" style="width: 78%; background: #10b981;"></div>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-purple-100 to-purple-200 p-6 rounded-xl shadow-md text-center">
+                        <i class="fas fa-month text-3xl text-purple-600 mb-3"></i>
+                        <h4 class="font-semibold text-lg">Monthly Rate</h4>
+                        <p class="text-3xl font-bold text-purple-800" id="monthly-rate">82%</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="monthly-progress-fill" style="width: 82%; background: #8b5cf6;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-6">
+                <label for="student-subject-select" class="block font-semibold mb-2">Select Subject for Daily Analytics:</label>
+                <select id="student-subject-select" class="input-field w-full max-w-xs" aria-label="Select subject"></select>
+            </div>
+            <div id="subject-daily-analytics" class="hidden mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">📊 Daily Analytics for <span id="selected-subject-name"></span></h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Entry Time</th>
+                            <th>Exit Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="daily-analytics-table"></tbody>
+                </table>
+                <button id="close-daily-analytics" class="mt-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded">Close</button>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-gradient-to-r from-indigo-100 to-blue-100 p-6 rounded-xl shadow-md">
+                    <i class="fas fa-camera text-4xl text-indigo-600 mb-3"></i>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Facial Detection</h3>
+                    <p class="text-gray-700">Authentic Facial Recognition With Aadhar Api</p>
+                    <div class="mt-3 flex items-center">
+                        <i id="face-status-icon" class="fas fa-check-circle text-green-500 mr-2"></i>
+                        <span class="text-sm font-medium" id="face-status">Face Verified</span>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-blue-100 to-cyan-100 p-6 rounded-xl shadow-md">
+                    <i class="fas fa-bluetooth text-4xl text-blue-600 mb-3"></i>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Bluetooth Verification</h3>
+                    <p class="text-gray-700">Connect Your Bluetooth With Class Router</p>
+                    <div class="mt-3 flex items-center">
+                        <i id="bluetooth-status-icon" class="fas fa-wifi text-green-500 mr-2"></i>
+                        <span class="text-sm font-medium" id="bluetooth-status">Bluetooth</span>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-6">
+                <button id="mark-entry" class="w-full bg-green-600 text-white py-4 px-6 rounded-lg font-bold text-lg btn hover:bg-green-700 flex items-center justify-center mb-4">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Mark Entry Attendance 
+                </button>
+                <button id="mark-exit" class="w-full bg-red-600 text-white py-4 px-6 rounded-lg font-bold text-lg btn hover:bg-red-700 flex items-center justify-center disabled">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Mark Exit Attendance 
+                </button>
+            </div>
+            <div id="entry-status" class="hidden mt-6 text-center">
+                <i class="fas fa-check-circle text-4xl text-green-500 mb-2"></i>
+                <p class="text-green-700 font-bold text-xl">Entry attendance marked! 🎉</p>
+                <small class="text-gray-600">Class in Progress : Remember to mark exit at class end.</small>
+            </div>
+            <div id="exit-status" class="hidden mt-6 text-center">
+                <i class="fas fa-check-double text-4xl text-blue-500 mb-2"></i>
+                <p class="text-blue-700 font-bold text-xl">Exit attendance marked!</p>
+                <small class="text-gray-600">Attendance successfully submitted</small>
+            </div>
+            <div class="mt-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">📊 Recent Attendance History</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Subject</th>
+                            <th>Entry</th>
+                            <th>Exit</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-attendance-table"></tbody>
+                </table>
+            </div>
+            <div class="mt-6 bg-blue-50 p-4 rounded-lg">
+                <p class="text-blue-800 font-semibold">💡 Student Dashboard Features:</p>
+                <ul class="text-blue-700 mt-2 list-disc list-inside">
+                    <li>Daily, weekly, and monthly attendance percentages</li>
+                    <li>Subject-wise daily analytics on click</li>
+                    <li> facial recognition</li>
+                    <li> Bluetooth connectivity</li>
+                    <li>Entry and exit attendance marking</li>
+                    <li>Real-time progress bars</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Teacher Demo Section -->
+        <div id="teacher-section" class="hidden card fade-in">
+            <div class="text-center mb-8">
+                <i class="fas fa-calendar-alt text-6xl text-purple-600 mb-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800">👨‍🏫 Teacher: Class Scheduling & Analytics</h2>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">⏰ Fix Class Timing</h3>
+                <form id="schedule-class-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                            <select id="schedule-subject" class="input-field w-full">
+                                <option>Math</option>
+                                <option>Science</option>
+                                <option>English</option>
+                                <option>History</option>
+                                <option>Geography</option>
+                                <option>Computer Science</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                            <input type="date" id="schedule-date" class="input-field w-full" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                            <input type="time" id="schedule-time" class="input-field w-full" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-bold btn hover:bg-purple-700">
+                        <i class="fas fa-calendar-plus mr-2"></i>Schedule Class
+                    </button>
+                </form>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">📅 Scheduled Classes</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheduled-classes-table"></tbody>
+                </table>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">📈 Subject-wise Attendance Summary</h3>
+                <div class="mb-4">
+                    <label for="subject-filter" class="block text-sm font-medium text-gray-700">🔽 Filter by Subject</label>
+                    <select id="subject-filter" class="input-field mt-1 w-full"></select>
+                </div>
+                <table class="table" id="teacher-attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Subject</th>
+                            <th>Entry</th>
+                            <th>Exit</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendance-table-body"></tbody>
+                </table>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">📅 Daily Attendance Details</h3>
+                <table class="table" id="teacher-daily-data">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Student</th>
+                            <th>Subject</th>
+                            <th>Entry Time</th>
+                            <th>Exit Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teacher-daily-data-body"></tbody>
+                </table>
+            </div>
+            <div class="mt-6 bg-purple-50 p-4 rounded-lg">
+                <p class="text-purple-800 font-semibold">💡 Teacher Features:</p>
+                <ul class="text-purple-700 mt-2 list-disc list-inside">
+                    <li>Class scheduling with subject, date, and time</li>
+                    <li>Comprehensive attendance analytics</li>
+                    <li>Entry/exit verification tracking</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Admin Demo Section -->
+        <div id="admin-section" class="hidden card fade-in">
+            <div class="text-center mb-8">
+                <i class="fas fa-id-card text-6xl text-red-600 mb-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800">🔧 Admin: Student Management & Face Registration</h2>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">🙄 Face Registration By Api/Python Library , By Aadhar Number As user name</h3>
+
+                        <input type="text" id="aadhar-number" placeholder="Aadhar Number (12 digits)" class="input-field" required pattern="[0-9]{12}" maxlength="12">
+                        <input type="text" id="student-for-face" placeholder="Student Username" class="input-field" required>
+                        <input type="file" id="student-for-face" placeholder="Student Username" class="input-field" required>
+                    </div> 
+                                   <form id="face-registration-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 ga
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-bold btn hover:bg-blue-700">
+                        <i class="fas fa-fingerprint mr-2"></i>Register Face By Unique Aadhar Number
+                    </button>
+                </form>
+            </div>
+            <div id="face-registration-status" class="hidden mt-4 text-center bg-blue-50 p-4 rounded-lg">
+                <i class="fas fa-check-double text-3xl text-blue-500 mb-2"></i>
+                <p class="text-blue-800 font-bold">Face registered successfully </p>
+                <small class="text-gray-600">Biometric data linked to student profile.</small>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">➕ Add New Student</h3>
+                <form id="add-student-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" id="new-student-name" placeholder="Student Name" class="input-field" required>
+                        <input type="text" id="new-student-username" placeholder="Username" class="input-field" required>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="password" id="new-student-password" placeholder="Password" class="input-field" required>
+                        <input type="text" id="new-student-subject" placeholder="Subject" class="input-field" required>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" id="new-student-password" placeholder="Course" class="input-field" required>
+                        <input type="text" id="new-student-subject" placeholder="Branch" class="input-field" required>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="number" id="new-student-password" placeholder="Year" class="input-field" required>
+                        <input type="number" id="new-student-subject" placeholder="Semester" class="input-field" required>
+                    </div>
+                    <button type="submit" class="w-full bg-red-600 text-white py-3 px-6 rounded-lg font-bold btn hover:bg-red-700">
+                        <i class="fas fa-plus mr-2"></i>Add  Student
+                    </button>
+                </form>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">👥 Students List</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Username</th>
+                            <th>Subject</th>
+                            <th>Aadhar /Username</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="students-list"></tbody>
+                </table>
+            </div>
+            <div class="mt-6 bg-red-50 p-4 rounded-lg">
+                <p class="text-red-800 font-semibold">💡 Admin  Features:</p>
+                <ul class="text-red-700 mt-2 list-disc list-inside">
+                    <li> Face Resistration Of Every Student</li>
+                    <li>student registration and management</li>
+                    <li>Password protection for admin functions</li>
+                    <li>Real-time student list updates</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-blue-800 text-white p-6 mt-auto">
+        <div class="container mx-auto text-center">
+            <p>AttendoSphere Prototype | Smart India Hackathon Solution</p>
+            <div class="mt-2">
+                <small>🎭 Interactive  - All Data is Real & Authentic</small>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Generate extensive fake data for demo
+        function generateFakeData() {
+            const subjects = ["Math", "Science", "English", "History", "Geography", "Computer Science"];
+            const students = [];
+            const attendanceData = [];
+            const classSchedules = [];
+
+            // Generate demo students
+            for (let i = 1; i <= 12; i++) {
+                const subject = subjects[Math.floor(Math.random() * subjects.length)];
+                const aadharRegistered = Math.random() > 0.3; // 70% registered
+                students.push({
+                    name: `Demo Student ${i}`,
+                    username: `student${i}`,
+                    password: `demo${i}`,
+                    subject: subject,
+                    aadharRegistered: aadharRegistered,
+                    aadharNumber: aadharRegistered ? `XXXX-XXXX-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}` : null
+                });
+            }
+
+            // Generate attendance records with entry/exit
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 14);
+
+            for (let i = 0; i < 14; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+
+                students.forEach(student => {
+                    const hasEntry = Math.random() > 0.2;
+                    const hasExit = hasEntry && Math.random() > 0.3;
+                    attendanceData.push({
+                        name: student.name,
+                        username: student.username,
+                        subject: student.subject,
+                        date: dateStr,
+                        entry: hasEntry,
+                        exit: hasExit,
+                        status: hasEntry && hasExit ? 'Complete' : (hasEntry ? 'Entry Only' : 'Absent')
+                    });
+                });
+            }
+
+            return { students, attendanceData, classSchedules, subjects };
+        }
+
+        const fakeData = generateFakeData();
+        let attendanceData = fakeData.attendanceData;
+        let students = fakeData.students;
+        let classSchedules = fakeData.classSchedules;
+
+        const users = {
+            teacher: { username: 'teacher1', password: 'pass123' },
+            student: students.reduce((acc, s) => ({ ...acc, [s.username]: s }), {}),
+            admin: { username: 'admin', password: 'admin123' }
+        };
+
+        let currentUser = null;
+
+        // DOM elements
+        const scenarioInfo = document.getElementById('scenario-info');
+        const scenarioText = document.getElementById('scenario-text');
+        const loginSection = document.getElementById('login-section');
+        const studentSection = document.getElementById('student-section');
+        const teacherSection = document.getElementById('teacher-section');
+        const adminSection = document.getElementById('admin-section');
+        const userInfo = document.getElementById('user-info');
+        const usernameDisplay = document.getElementById('username-display');
+        const loginForm = document.getElementById('login-form');
+        const roleSelect = document.getElementById('role');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('error-message');
+        const markEntryBtn = document.getElementById('mark-entry');
+        const markExitBtn = document.getElementById('mark-exit');
+        const entryStatus = document.getElementById('entry-status');
+        const exitStatus = document.getElementById('exit-status');
+        const logoutBtn = document.getElementById('logout-btn');
+        const notification = document.getElementById('notification');
+        const addStudentForm = document.getElementById('add-student-form');
+        const newStudentName = document.getElementById('new-student-name');
+        const newStudentUsername = document.getElementById('new-student-username');
+        const newStudentPassword = document.getElementById('new-student-password');
+        const newStudentSubject = document.getElementById('new-student-subject');
+        const studentsList = document.getElementById('students-list');
+        const subjectFilter = document.getElementById('subject-filter');
+        const scheduleClassForm = document.getElementById('schedule-class-form');
+        const scheduleSubject = document.getElementById('schedule-subject');
+        const scheduleDate = document.getElementById('schedule-date');
+        const scheduleTime = document.getElementById('schedule-time');
+        const scheduledClassesTable = document.getElementById('scheduled-classes-table');
+        const faceStatus = document.getElementById('face-status');
+        const bluetoothStatus = document.getElementById('bluetooth-status');
+        const faceRegistrationForm = document.getElementById('face-registration-form');
+        const aadharNumber = document.getElementById('aadhar-number');
+        const studentForFace = document.getElementById('student-for-face');
+        const faceRegistrationStatus = document.getElementById('face-registration-status');
+
+        // Simulate facial recognition and Bluetooth with fake data
+        function simulateVerifications() {
+            document.getElementById('face-status-icon').className = 'fas fa-spinner fa-spin text-blue-500 mr-2';
+            document.getElementById('face-status').textContent = 'Simulating Facial Scan...';
+            document.getElementById('bluetooth-status-icon').className = 'fas fa-spinner fa-spin text-blue-500 mr-2';
+            document.getElementById('bluetooth-status').textContent = 'Connecting to Router...';
+
+            setTimeout(() => {
+                document.getElementById('face-status-icon').className = 'fas fa-check-circle text-green-500 mr-2';
+                document.getElementById('face-status').textContent = 'Fake Face Verified ✅';
+                document.getElementById('bluetooth-status-icon').className = 'fas fa-wifi text-green-500 mr-2';
+                document.getElementById('bluetooth-status').textContent = 'Fake Connected 🔗';
+            }, 3000);
+        }
+
+        // Simulate daily, weekly, monthly percentages
+        function updatePercentageData() {
+            const studentData = attendanceData.filter(a => a.username === currentUser.username);
+            const totalDays = studentData.length;
+            const presentDays = studentData.filter(a => a.entry && a.exit).length;
+            const dailyRate = totalDays > 0 ? ((presentDays / totalDays) * 100).toFixed(1) : '0';
+            const weeklyRate = dailyRate * 0.9; // Simulate week
+            const monthlyRate = dailyRate * 0.85; // Simulate month
+
+            document.getElementById('daily-rate').textContent = dailyRate + '%';
+            document.getElementById('daily-progress-fill').style.width = dailyRate + '%';
+            document.getElementById('weekly-rate').textContent = weeklyRate.toFixed(1) + '%';
+            document.getElementById('weekly-progress-fill').style.width = weeklyRate.toFixed(1) + '%';
+            document.getElementById('monthly-rate').textContent = monthlyRate.toFixed(1) + '%';
+            document.getElementById('monthly-progress-fill').style.width = monthlyRate.toFixed(1) + '%';
+        }
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const role = roleSelect.value;
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+
+            if (role === 'admin' && username === users.admin.username && password === users.admin.password) {
+                currentUser = { role, username };
+                scenarioText.textContent = 'Admin Control Panel';
+                scenarioInfo.classList.remove('hidden');
+                showUserSection();
+            } else if (role === 'teacher' && username === users.teacher.username && password === users.teacher.password) {
+                currentUser = { role, username };
+                scenarioText.textContent = 'Teacher Analytics Dashboard';
+                scenarioInfo.classList.remove('hidden');
+                showUserSection();
+            } else if (role === 'student' && users.student[username] && users.student[username].password === password) {
+                currentUser = { role, username, subject: users.student[username].subject };
+                scenarioText.textContent = 'Student Attendance Portal';
+                scenarioInfo.classList.remove('hidden');
+                showUserSection();
+            } else {
+                errorMessage.textContent = '❌ Invalid demo credentials. Please use the provided demo accounts.';
+                errorMessage.classList.remove('hidden');
+                setTimeout(() => {
+                    errorMessage.classList.add('hidden');
+                }, 4000);
+            }
+        });
+
+        markEntryBtn.addEventListener('click', function() {
+            if (faceStatus.textContent !== 'Fake Face Verified ✅' || bluetoothStatus.textContent !== 'Fake Connected 🔗') {
+                alert('Please wait for all verifications to complete in the demo.');
+                return;
+            }
+            markEntryBtn.disabled = true;
+            markEntryBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Marking Entry...';
+            
+            setTimeout(() => {
+                // Record entry attendance
+                const today = new Date().toISOString().split('T')[0];
+                const existingIndex = attendanceData.findIndex(a => a.username === currentUser.username && a.date === today);
+                
+                if (existingIndex >= 0) {
+                    attendanceData[existingIndex].entry = true;
+                } else {
+                    attendanceData.push({
+                        name: users.student[currentUser.username].name,
+                        username: currentUser.username,
+                        subject: currentUser.subject,
+                        date: today,
+                        entry: true,
+                        exit: false,
+                        status: 'Entry Only'
+                    });
+                }
+
+                markEntryBtn.disabled = false;
+                markEntryBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Marked Entry!';
+                entryStatus.classList.remove('hidden');
+                markExitBtn.classList.remove('disabled');
+                markExitBtn.disabled = false;
+                updateStudentAttendanceTable();
+                updatePercentageData();
+                showNotification('Entry attendance marked!');
+            }, 2000);
+        });
+
+        markExitBtn.addEventListener('click', function() {
+            markExitBtn.disabled = true;
+            markExitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Marking Exit...';
+            
+            setTimeout(() => {
+                // Record exit attendance and submit
+                const today = new Date().toISOString().split('T')[0];
+                const existingIndex = attendanceData.findIndex(a => a.username === currentUser.username && a.date === today);
+                
+                if (existingIndex >= 0) {
+                    attendanceData[existingIndex].exit = true;
+                    attendanceData[existingIndex].status = 'Complete';
+                }
+
+                markExitBtn.disabled = false;
+                markExitBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Exit Marked!';
+                exitStatus.classList.remove('hidden');
+                updateStudentAttendanceTable();
+                updatePercentageData();
+                showNotification('Attendance successfully submitted to demo storage!');
+            }, 2000);
+        });
+
+        logoutBtn.addEventListener('click', function() {
+            currentUser = null;
+            showLoginSection();
+            loginForm.reset();
+            scenarioInfo.classList.add('hidden');
+        });
+
+        addStudentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = newStudentName.value;
+            const username = newStudentUsername.value;
+            const password = newStudentPassword.value;
+            const subject = newStudentSubject.value;
+
+            students.push({ name, username, password, subject, aadharRegistered: false, aadharNumber: null });
+            users.student[username] = { name, password, subject };
+            updateStudentsList();
+            addStudentForm.reset();
+            alert('🚀 Demo Student added successfully! (No real storage)');
+        });
+
+        faceRegistrationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const aadhar = aadharNumber.value;
+            const studentUsername = studentForFace.value.trim();
+
+            const studentIndex = students.findIndex(s => s.username === studentUsername);
+            if (studentIndex !== -1) {
+                students[studentIndex].aadharRegistered = true;
+                students[studentIndex].aadharNumber = aadhar;
+                faceRegistrationStatus.classList.remove('hidden');
+                faceRegistrationForm.reset();
+                updateStudentsList();
+                alert('🙄 Face registered successfully via simulated Aadhar API!');
+            } else {
+                alert('❌ Student not found!');
+            }
+        });
+
+        scheduleClassForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const subject = scheduleSubject.value;
+            const date = scheduleDate.value;
+            const time = scheduleTime.value;
+
+            classSchedules.push({ subject, date, time, status: 'Scheduled' });
+            updateScheduledClassesTable();
+            scheduleClassForm.reset();
+            alert('📅 Demo class scheduled successfully!');
+        });
+
+        subjectFilter.addEventListener('change', function() {
+            updateAttendanceTable();
+        });
+
+        function showLoginSection() {
+            loginSection.classList.remove('hidden');
+            studentSection.classList.add('hidden');
+            teacherSection.classList.add('hidden');
+            adminSection.classList.add('hidden');
+            userInfo.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            notification.classList.add('hidden');
+            faceRegistrationStatus.classList.add('hidden');
+        }
+
+        function showUserSection() {
+            loginSection.classList.add('hidden');
+            userInfo.classList.remove('hidden');
+            usernameDisplay.textContent = currentUser.username;
+
+            if (currentUser.role === 'student') {
+                studentSection.classList.remove('hidden');
+                teacherSection.classList.add('hidden');
+                adminSection.classList.add('hidden');
+                updateStudentAttendanceTable();
+                updatePercentageData();
+                simulateVerifications();
+                setTimeout(() => showNotification(), 2000);
+            } else if (currentUser.role === 'teacher') {
+                studentSection.classList.add('hidden');
+                teacherSection.classList.remove('hidden');
+                adminSection.classList.add('hidden');
+                updateAttendanceTable();
+                updateSubjectFilter();
+                updateScheduledClassesTable();
+            } else {
+                studentSection.classList.add('hidden');
+                teacherSection.classList.add('hidden');
+                adminSection.classList.remove('hidden');
+                updateStudentsList();
+            }
+        }
+
+        function updateStudentAttendanceTable() {
+            const studentData = attendanceData.filter(a => a.username === currentUser.username).slice(-5); // Show last 5 entries
+            const tbody = document.getElementById('student-attendance-table');
+            tbody.innerHTML = '';
+            studentData.forEach(record => {
+                const row = tbody.insertRow();
+                const statusColor = record.status === 'Complete' ? 'text-green-600' : (record.status === 'Entry Only' ? 'text-yellow-600' : 'text-red-600');
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.subject}</td>
+                    <td><i class="fas fa-check-circle ${record.entry ? 'text-green-500' : 'text-gray-300'}"></i></td>
+                    <td><i class="fas fa-check-circle ${record.exit ? 'text-green-500' : 'text-gray-300'}"></i></td>
+                    <td><span class="${statusColor} font-semibold">${record.status}</span></td>
+                `;
+            });
+        }
+
+        function updateAttendanceTable() {
+            const selectedSubject = subjectFilter.value;
+            const filteredData = selectedSubject ? attendanceData.filter(a => a.subject === selectedSubject) : attendanceData;
+            const studentNames = [...new Set(filteredData.map(a => a.name))];
+            const summary = [];
+            for (const name of studentNames) {
+                const records = filteredData.filter(a => a.name === name);
+                const subjects = [...new Set(records.map(r => r.subject))];
+                for (const subject of subjects) {
+                    const subjectRecords = records.filter(r => r.subject === subject);
+                    const totalClasses = new Set(filteredData.map(a => a.date)).size;
+                    const entryCount = subjectRecords.filter(r => r.entry).length;
+                    const exitCount = subjectRecords.filter(r => r.exit).length;
+                    const completeCount = subjectRecords.filter(r => r.status === 'Complete').length;
+                    summary.push({
+                        name,
+                        subject,
+                        entryCount,
+                        exitCount,
+                        completeCount,
+                        totalClasses,
+                        attendancePercent: ((completeCount / totalClasses) * 100).toFixed(1)
+                    });
+                }
+            }
+
+            const tbodySummary = document.getElementById('attendance-table-body');
+            tbodySummary.innerHTML = '';
+            summary.forEach(item => {
+                const row = tbodySummary.insertRow();
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.subject}</td>
+                    <td>${item.entryCount}</td>
+                    <td>${item.exitCount}</td>
+                    <td><span class="${item.attendancePercent >= 75 ? 'text-green-600' : 'text-yellow-600'} font-semibold">${item.attendancePercent}% Complete</span></td>
+                `;
+            });
+        }
+
+        function updateSubjectFilter() {
+            const subjects = [...new Set(attendanceData.map(a => a.subject))].filter(Boolean);
+            subjectFilter.innerHTML = '<option value="">All Demo Subjects 📚</option>';
+            subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject;
+                option.textContent = subject;
+                subjectFilter.appendChild(option);
+            });
+        }
+
+        function updateScheduledClassesTable() {
+            const tbody = scheduledClassesTable;
+            tbody.innerHTML = '';
+            classSchedules.slice(-5).forEach(cls => { // Show last 5 schedules
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${cls.subject}</td>
+                    <td>${cls.date}</td>
+                    <td>${cls.time}</td>
+                    <td><span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">${cls.status}</span></td>
+                `;
+            });
+        }
+
+        function updateStudentsList() {
+            studentsList.innerHTML = '';
+            students.forEach(student => {
+                const row = studentsList.insertRow();
+                const aadharStatus = student.aadharRegistered ? 
+                    `<i class="fas fa-check-circle text-green-500"></i> ${student.aadharNumber}` : 
+                    '<span class="text-gray-500">Not Registered</span>';
+                row.innerHTML = `
+                    <td>${student.name}</td>
+                    <td>${student.username}</td>
+                    <td>${student.subject}</td>
+                    <td>${aadharStatus}</td>
+                    <td><button class="bg-red-500 text-white px-3 py-1 rounded text-sm btn" onclick="removeDemoStudent('${student.username}')"><i class="fas fa-trash"></i> Remove</button></td>
+                `;
+            });
+        }
+
+        window.removeDemoStudent = function(username) {
+            students = students.filter(s => s.username !== username);
+            delete users.student[username];
+            updateStudentsList();
+            alert('🗑️ Demo Student removed successfully!');
+        };
+
+        function showNotification(message) {
+            notification.innerHTML = `<i class="fas fa-bell mr-2"></i> ${message}`;
+            notification.classList.remove('hidden');
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 4000);
+        }
+
+        // Initialize the demo
+        showLoginSection();
+    </script>
+</body>
+</html>
+</content>
+</create_file>
